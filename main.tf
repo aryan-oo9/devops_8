@@ -1,8 +1,7 @@
 provider "aws" {
-  region = var.region # Uses the variable from variables.tf
+  region = var.region
 }
 
-# IAM Role for EC2 (Step 6 of procedure)
 resource "aws_iam_role" "ec2_role" {
   name = "experiment8_ec2_role"
   assume_role_policy = jsonencode({
@@ -11,14 +10,22 @@ resource "aws_iam_role" "ec2_role" {
   })
 }
 
-# S3 Bucket (Step 3 of procedure)
 resource "aws_s3_bucket" "lab_bucket" {
   bucket = "aryan-cloud-automation-2026"
 }
 
-# EC2 Instance (Step 3 of procedure)
 resource "aws_instance" "web_server" {
-  ami           = "ami-0aaa636894689fa47" # Amazon Linux 2023
-  instance_type = var.instance_type       # Uses the variable from variables.tf
-  tags = { Name = "Jenkins-Ansible-Node" }
+  ami           = "ami-0aaa636894689fa47" 
+  instance_type = var.instance_type
+  tags = { Name = "Jenkins-Automated-Node" }
+
+  # This replaces the Ansible Playbook!
+  user_data = <<-EOF
+              #!/bin/bash
+              yum update -y
+              yum install -y httpd
+              systemctl start httpd
+              systemctl enable httpd
+              echo "<h1>Deployed via Jenkins Pipeline</h1>" > /var/www/html/index.html
+              EOF
 }
