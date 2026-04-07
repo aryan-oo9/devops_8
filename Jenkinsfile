@@ -8,13 +8,16 @@ pipeline {
     environment {
         AWS_ACCESS_KEY_ID     = credentials('aws-creds')
         AWS_SECRET_ACCESS_KEY = credentials('aws-creds')
+        // This adds the local bin to the path so Jenkins can find the new ansible
+        PATH = "$HOME/.local/bin:$PATH"
     }
 
     stages {
-        stage('Install Ansible') {
+        stage('Install Ansible (Local)') {
             steps {
-                // This installs ansible inside the Jenkins Linux environment
-                sh 'apt-get update && apt-get install -y ansible'
+                // This uses 'pip' (Python) to install ansible in a folder Jenkins owns
+                // No 'sudo' or 'root' required!
+                sh 'python3 -m pip install --user ansible'
             }
         }
         stage('Terraform Init') {
@@ -29,7 +32,7 @@ pipeline {
         }
         stage('Approval') {
             steps {
-                input "Approve build?"
+                input "Proceed with AWS deployment?"
             }
         }
         stage('Terraform Apply') {
