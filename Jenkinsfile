@@ -18,12 +18,15 @@ pipeline {
         }
         stage('Terraform Plan') {
             steps {
-                sh 'terraform plan'
+                // The 'retry' helps if the network or pod lags briefly
+                retry(2) {
+                    sh 'terraform plan'
+                }
             }
         }
         stage('Approval') {
             steps {
-                input "Deploy Infrastructure to AWS?"
+                input "Deploy to AWS?"
             }
         }
         stage('Terraform Apply') {
