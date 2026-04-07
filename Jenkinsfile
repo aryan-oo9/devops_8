@@ -2,12 +2,12 @@ pipeline {
     agent any
     
     tools {
-        // This MUST match the name you gave in Manage Jenkins > Tools
+        // This must match the 'Name' you gave in Global Tool Configuration
         terraform 'terraform' 
     }
 
     environment {
-        // Updated credential binding to avoid the 'Unknown parameter' warning
+        // Using this format fixes the 'Unknown parameter' warning in your logs
         AWS_ACCESS_KEY_ID     = credentials('aws-creds')
         AWS_SECRET_ACCESS_KEY = credentials('aws-creds')
     }
@@ -15,7 +15,7 @@ pipeline {
     stages {
         stage('Terraform Init') {
             steps {
-                // Jenkins will now download Terraform into the container before running this
+                // Jenkins will now download the Linux version into the container
                 sh 'terraform init'
             }
         }
@@ -26,7 +26,7 @@ pipeline {
         }
         stage('Approval') {
             steps {
-                input "Apply changes to AWS?"
+                input "Do you want to provision AWS resources?"
             }
         }
         stage('Terraform Apply') {
