@@ -1,26 +1,49 @@
 pipeline {
     agent any
-    environment {
-        AWS_CREDS = credentials('aws-creds') // The ID you gave your keys in Jenkins
+    
+    /* This section tells Jenkins to find the 'terraform' tool you configured */
+    tools {
+        terraform 'terraform' 
     }
+
+    environment {
+        /* Fix the credential binding for AWS */
+        AWS_ACCESS_KEY_ID     = credentials('aws-creds')
+        AWS_SECRET_ACCESS_KEY = credentials('aws-creds')
+    }
+
     stages {
         stage('Checkout') {
-            steps { checkout scm }
+            steps {
+                checkout scm
+            }
         }
         stage('Terraform Init') {
-            steps { sh 'terraform init' }
+            steps {
+                /* Jenkins will now automatically add Terraform to the PATH */
+                sh 'terraform init' 
+            }
         }
         stage('Terraform Plan') {
-            steps { sh 'terraform plan' }
+            steps {
+                sh 'terraform plan'
+            }
         }
         stage('Approval') {
-            steps { input 'Do you approve this infrastructure build?' }
+            steps {
+                input 'Do you want to apply these changes to AWS?'
+            }
         }
         stage('Terraform Apply') {
-            steps { sh 'terraform apply -auto-approve' }
+            steps {
+                sh 'terraform apply -auto-approve'
+            }
         }
         stage('Ansible Configure') {
-            steps { sh 'ansible-playbook playbook.yml' }
+            steps {
+                /* Use the tool name for ansible as well */
+                sh 'ansible-playbook playbook.yml'
+            }
         }
     }
 }
