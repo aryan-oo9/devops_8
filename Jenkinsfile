@@ -2,25 +2,29 @@ pipeline {
     agent any
     
     tools {
-        terraform 'terraform' // Matches the name in Global Tool Configuration
+        terraform 'terraform' 
     }
 
     environment {
-        // Correct way to bind AWS credentials for a Windows agent
         AWS_ACCESS_KEY_ID     = credentials('aws-creds')
         AWS_SECRET_ACCESS_KEY = credentials('aws-creds')
     }
 
     stages {
+        stage('Install Ansible') {
+            steps {
+                // This installs ansible inside the Jenkins Linux environment
+                sh 'apt-get update && apt-get install -y ansible'
+            }
+        }
         stage('Terraform Init') {
             steps {
-                // Use 'bat' for Windows instead of 'sh'
-                bat 'terraform init'
+                sh 'terraform init'
             }
         }
         stage('Terraform Plan') {
             steps {
-                bat 'terraform plan'
+                sh 'terraform plan'
             }
         }
         stage('Approval') {
@@ -30,13 +34,12 @@ pipeline {
         }
         stage('Terraform Apply') {
             steps {
-                bat 'terraform apply -auto-approve'
+                sh 'terraform apply -auto-approve'
             }
         }
         stage('Ansible Configure') {
             steps {
-                // For Ansible, we use the WSL command because Ansible is in Ubuntu
-                bat 'wsl ansible-playbook playbook.yml'
+                sh 'ansible-playbook playbook.yml'
             }
         }
     }
