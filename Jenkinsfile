@@ -1,17 +1,23 @@
 pipeline {
     agent any
-    tools { terraform 'terraform' }
+    
+    tools {
+        terraform 'terraform' 
+    }
+
     environment {
         AWS_ACCESS_KEY_ID     = credentials('aws-creds')
         AWS_SECRET_ACCESS_KEY = credentials('aws-creds')
+        TF_IN_AUTOMATION      = 'true'
     }
+
     stages {
-        stage('Automated Deploy') {
+        stage('Automated AWS Deploy') {
             steps {
-                // We do everything in one go to keep memory usage low
                 sh '''
                     terraform init -input=false
-                    terraform apply -auto-approve
+                    # This flag is the magic fix for the JENKINS-48300 crash
+                    terraform apply -auto-approve -parallelism=1
                 '''
             }
         }
